@@ -1,0 +1,16 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <script type="text/javascript" src="readMap.js"></script>
+  <title>Visualisation des données de carte</title>
+</head>
+
+<body>
+    <label for="file">Choose a map history:</label>
+
+    <input type="file" id="map" name="map" accept="txt/txt" oninput="showCarteVierge"/>
+    <table> 
+        <tr><td><button onclick="showCarteVierge()">Carte vierge</button></td><td><button onclick="showCarteTrace">carte tracé</button></td></tr>
+        <tr><td colspan="2" id="Carte"></td></tr>
+    </table>
+</body>

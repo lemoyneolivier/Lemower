@@ -1,0 +1,9 @@
+{
+    "mapFileName" : "./test/gardenMap.json",
+    "traceFileDir" : "./test",
+    "port" : "/dev/ttyACM1",
+    "baudRate" : "115200",
+    "speed" : 2,
+    "replay" : "test/replay_",
+    "testMode" : 0
+}
