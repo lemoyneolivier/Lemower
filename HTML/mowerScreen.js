@@ -98,17 +98,17 @@ function registerCut (x, y, nx, ny, map) {
     if (dy > dx) { mx = dy;}
     if (mx == 0) return;
 
-    progX = dx / mx;Y
+    progX = dx / mx;
     progY = dy / mx;
 
     lastX = startX;
     lastY = startY;
     
     for (i = 0; i <= mx; i++){
-        posX = startX + Math.floor((progX)*i);
-        posY = startY + Math.floor((progY)*i);
-        console.log("Cut "+posX+", "+posY);
-        map.mower[posX, posY] = "1";
+        posX = startX + Math.floor(progX*i);
+        posY = startY + Math.floor(progY*i);
+        console.log("Cut point "+posX+", "+posY);
+        map.mower[posX*map.bounds.nb_y+posY] = "1";
     }
 }
 
@@ -135,6 +135,12 @@ function drawScene (){
     ctx.strokeStyle = 'rgb(255, 0, 0)';
     ctx.lineWidth = 5;
 
+    for (i = 0; i < map.bounds.nb_x; i ++ ) {
+       for (j = 0; j < map.bounds.nb_y; j ++ ) {
+           m = map.mower[i, j]= "0";
+       }
+    }
+
     ctx.moveTo(getX(0), getY(0));
     var lastX = 0;
     var lastY = 0;
@@ -150,6 +156,9 @@ function drawScene (){
     }
 
     ctx.stroke();
+
+
+    drawCuttingArea(ctx, map);
 
     drawMower(ctx, lastX, lastY, lastAngle);
     document.getElementById("position").innerText=Math.floor(lastX);
@@ -173,21 +182,29 @@ function drawArea(context, map) {
                 mx = (i+map.bounds.min_x)*step;
                 my = (j+map.bounds.min_y)*step;
                 context.fillRect(getX(mx), getY(my), taux, taux);
-            } else {
-                m = map.mower[i*map.bounds.nb_y+j];
-                if (m == "1") {
-                    console.log("Cutted area");
-                    context.fillStyle = 'rgb(57, 0, 200)';
-                    mx = (i+map.bounds.min_x)*step;
-                    my = (j+map.bounds.min_y)*step;
-                    context.fillRect(getX(mx), getY(my), taux, taux);
-                }
+            } 
+        }
+    }
+}
+
+// Dessine la zone de tonte
+function drawCuttingArea(context, map) {
+    context.fillStyle = 'rgb(57, 0, 200)';
+    for (i = 0; i < map.bounds.nb_x; i ++ ) {
+        for (j = 0; j < map.bounds.nb_y; j ++ ) {
+            m = map.mower[i*map.bounds.nb_y+j];
+            if (m == "1") {
+                mx = (i+map.bounds.min_x)*step;
+                my = (j+map.bounds.min_y)*step;
+                console.log("Cutted area "+i+" "+j);
+                context.fillRect(getX(mx), getY(my), taux, taux);
             }
         }
     }
 
 
 }
+
 
 function drawMower (context, x, y, angle) {
    context.save();
