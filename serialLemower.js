@@ -16,9 +16,12 @@ const config = require("./config.json");
 
 const fs = require('fs');
 const mower = require('./mowerManager.js');
+const map = require("./maps.js");
 
 var myPort;
 var isConnected = false;
+
+var isReady = false;
 
 
 
@@ -92,7 +95,8 @@ function onOpen() {
  */
 function onData(data) {
     console.log("Read "+data);
-    ret = MowerManager.execLine(data);
+    //     execLine : function(garden, replayName, ready, line) {
+    ret = mower.execLine(map, config.replay, isReady, data);
     if (ret != "") {
       myPort.write(cmd+">", function(err) {
         if (err) {
