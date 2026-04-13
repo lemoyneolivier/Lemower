@@ -98,6 +98,7 @@ function onData(data) {
     //     execLine : function(garden, replayName, ready, line) {
     ret = mower.execLine(map, config.replay, isReady, data);
     if (ret != "") {
+      isReady = true;
       myPort.write(cmd+">", function(err) {
         if (err) {
           return console.log('Error on write: ', err.message)
