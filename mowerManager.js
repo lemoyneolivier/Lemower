@@ -1,7 +1,6 @@
 const fs = require('fs');
 const config = require("./config.json");
 
-const mapManagement = require("./maps.js");
 
 
 
@@ -17,7 +16,7 @@ module.exports = {
         console.log("Appel "+line+" "+ready);
 
         data = content;
-        if (data == "R") { //Arduino est prete     val = 90+Math.floor(Math.random*180.0);
+        if (data.substr(0, 1) == "R") { //Arduino est prete     val = 90+Math.floor(Math.random*180.0);
             ready = true;
             return("a "+config.speed);
         }
@@ -55,6 +54,7 @@ module.exports = {
         return "";
     }
 }
+
 
 
 // calcul l'angle d'achapatoire le plus adequat
