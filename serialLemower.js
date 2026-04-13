@@ -99,11 +99,11 @@ function onData(data) {
     ret = mower.execLine(map, config.replay, isReady, data);
     if (ret != "") {
       isReady = true;
-      myPort.write(cmd+">", function(err) {
+      myPort.write(ret+">", function(err) {
         if (err) {
           return console.log('Error on write: ', err.message)
         }
-        console.log('w '+cmd);
+        console.log('w '+ret);
       });
     }
 }
