@@ -15,7 +15,7 @@ module.exports = {
         });
         console.log("Appel "+line+" "+ready);
 
-        data = content;
+        data = line;
         if (data.substr(0, 1) == "R") { //Arduino est prete     val = 90+Math.floor(Math.random*180.0);
             ready = true;
             return("a "+config.speed);
