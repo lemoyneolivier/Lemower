@@ -51,6 +51,10 @@ function connect () {
   const { ReadlineParser } = require('@serialport/parser-readline');
   var SerialPort = serialport.SerialPort; 
 
+  var logfile = config.replay+Date.now()+".txt";
+
+
+
   try  {
 
     myPort = new SerialPort( {path:targetPort, baudRate: parseInt(config.baudRate)});
@@ -83,6 +87,7 @@ function onOpen() {
   try {
     console.log("Port is opened");
     isConnected = true;
+    logfile = config.replay+Date.now()+".txt";
   } catch (error) {
     isConnected = false;
   }
@@ -97,7 +102,7 @@ function onOpen() {
 function onData(data) {
     console.log("Read "+data);
     //     execLine : function(garden, replayName, ready, line) {
-    ret = mower.execLine(map, config.replay, isReady, data);
+    ret = mower.execLine(map, logfile, isReady, data);
     if (ret != "") {
       isReady = true;
       myPort.write(ret+">", function(err) {
