@@ -16,7 +16,8 @@ const config = require("./config.json");
 
 const fs = require('fs');
 const mower = require('./mowerManager.js');
-const map = require("./maps.js");
+const garden = require("./maps.js");
+const map = garden.readFromFile("./test/gardenMap.json");
 
 var myPort;
 var isConnected = false;

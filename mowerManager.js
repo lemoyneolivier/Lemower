@@ -54,7 +54,6 @@ module.exports = {
             // manage the position of the robot : register cutting area 
             return managePosition(infos);
         }
-        return "";
     }
 }
 
@@ -95,7 +94,7 @@ function managePosition(infos) {
     angle = findTheWay(infos);
     return("t "+angle); // je tourne
   }
-  return "";
+  return "K"; // Keep alive
 }
 
 /** stoppe le Retourne à la base 
