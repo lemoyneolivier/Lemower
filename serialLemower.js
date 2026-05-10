@@ -1,6 +1,8 @@
 /**
  * Programme de pilotage de l'arduino
  * 
+ * Argument - position du fichier de configuration
+ * 
  * > communique avec l'Arduino
  * > pilote les limites de terrain par rapport à une carte (carreaux de 10 cm de coté)
  * > pilote la surface réellement découpée
@@ -11,10 +13,27 @@
 
 var serialport = require('serialport');
 const { execFile } = require('node:child_process');
-
-const config = require("./config.json");
-
 const fs = require('fs');
+
+var config = {};
+if (process.argv.length > 2) {
+  if (fs.existsSync(process.argv[2])) {
+    let rawdata = fs.readFileSync(process.argv[2]);
+    config = JSON.parse(rawdata);
+  } else { 
+    console.error("Defined config file not found !\n"+process.argv[2]);
+    return 1;
+  }
+} else  {
+  if (fs.existsSync("./config.json")) {
+    let rawdata = fs.readFileSync("./config.json");
+    config = JSON.parse(rawdata);
+  } else {
+    console.error("Default config file not found !");
+    return 1;
+  }
+}
+
 const mower = require('./mowerManager.js');
 const garden = require("./maps.js");
 const map = garden.readFromFile("./test/gardenMap.json");

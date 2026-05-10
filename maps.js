@@ -88,11 +88,11 @@ module.exports.getPosition= function (map, x, y) {
  * retourne 0 ou 1 selon que la case suivante (avec l'angle)
  * vérifier si hors zone aussi
  */
-module.exports.checkNextSquare= function (map, x, y, dir) {
+module.exports.checkNextSquare= function (map, x, y, dir, speed) {
     // next direction
     angle = dir/180*Math.PI;
-    newX = Math.floor(x + Math.cos(angle)*20.0);
-    newY = Math.floor(y + Math.sin(angle)*20.0);
+    newX = Math.floor(x + Math.cos(angle)*speed);
+    newY = Math.floor(y + Math.sin(angle)*speed);
 
     console.log("Obstacle - checkdir "+dir+" "+x+" "+y+" "+newX+" "+newY);
 

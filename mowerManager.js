@@ -3,8 +3,11 @@ const config = require("./config.json");
 
 const mapManagement = require("./maps.js");
 
-
-
+var lastPosition= {
+    "x" : 0,
+    "y" : 0,
+    "speed" : 0
+};
 
 
 module.exports = {  
@@ -41,8 +44,21 @@ module.exports = {
                 speed: parseInt(words[4]), 
                 battery: parseInt(words[5]), 
                 collision: parseInt(words[6]), 
-                garden: garden
+                garden: garden,
+                speed : 0
             };
+
+            // calcul de la vitesse 
+            var speed = Math.sqrt(Math.pow(x-lastPosition.x, 2) + Math.pow(y-lastPosition.y, 2));
+
+            lastPosition = {
+              x : x,
+              y : y,
+              speed : speed
+            }
+
+            infos.speed = speed;
+
             // gestion de la collision
             if (infos.collision != 0) {
                 console.log("Collision !");
@@ -66,7 +82,7 @@ function findTheWay(infos) {
   chk = true;
   while ((chk) && (angleDir < 360)) {
     angleDir = angleDir+45;
-    chk = mapManagement.checkNextSquare(infos.garden, infos.x, infos.y, infos.dir+angleDir);
+    chk = mapManagement.checkNextSquare(infos.garden, infos.x, infos.y, infos.dir+angleDir, infos.speed);
     console.log("Ajoute 45 = "+angleDir+" -> "+chk);
   }
   return angleDir;
