@@ -12,7 +12,25 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/HTML'));
 
-const config = require("./config.json");
+var config = {};
+if (process.argv.length > 2) {
+  if (fs.existsSync(process.argv[2])) {
+	let rawdata = fs.readFileSync(process.argv[2]);
+	config = JSON.parse(rawdata);
+  } else { 
+	console.error("Defined config file not found !\n"+process.argv[2]);
+	return 1;
+  }
+} else  {
+  if (fs.existsSync("./config.json")) {
+	let rawdata = fs.readFileSync("./config.json");
+	config = JSON.parse(rawdata);
+  } else {
+	console.error("Default config file not found !");
+	return 1;
+  }
+}
+
 const mapManagement = require("./maps.js");
 const gardenMap = mapManagement.readFromFile(config.mapFileName);
 
