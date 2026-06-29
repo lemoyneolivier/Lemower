@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="mowerScreen.css">
+    </head>
+    
+    <body onload= "loadFile();" onresize="resize();">
+
+        <table id="head" width="100%"  text-align="center" >
+            <tr>
+                <td><img src="mowerScreen.png" width= "100%"/></td>
+            </tr>
+        </table>
+        
+        <table >
+            <tr valign="TOP" >
+                <td width="15%">
+                    <table>
+                        <tr>
+                            <td> <img src="position.png" width="20px"> </td>
+                            <td>Position : </td>
+                            <td id="position"></td>
+                        </tr><tr>
+                            <td> <img src="vitesse.png" width="20px"> </td>
+                            <td>Speed : </td>
+                            <td id="speed"></td>
+                        </tr><tr>
+                            <td> <img src="direction.png" width="20px"> </td>
+                            <td>Direction : </td>
+                            <td id="direction"></td>
+                        </tr><tr>
+                            <td> <img src="batterie.png" width="20px"> </td>
+                            <td>Battry : </td>
+                            <td id="battry"></td>
+                        </tr>
+                    </table>
+                </td>
+                <td >
+                    <canvas width="1200" height="600" id="dessin"> </canvas>
+                </td>
+            </tr>
+        </table>
+
+        <script async type= "text/javascript" src="mowerScreen.js"></script>
+    </body>
+</HTML>

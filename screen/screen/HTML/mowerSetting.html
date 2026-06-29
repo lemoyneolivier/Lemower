@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    
+    <body onload= "loadFile();" onresize="resize();">
+        <script async type= "text/javascript" src="mowerScreen.js"></script>
+
+        <table id="head" width="100%"  text-align="center" >
+            <tr>
+                <td ><img src="mowerScreen.png" width= "100%"/></td>
+                <td >
+                    <table> 
+                       <tr> <td><img id="status" src="status-setup.png" width= "100%"/></td></tr>
+                       <tr> <td><img id="exit" src="status-exit.png" width= "100%"/></td></tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <table width="100%">
+            <tr valign="TOP" >
+                <td width="10%">
+                    <table id="connexion">
+                        <tr>
+                            <td> <img id="cnxStatus" src="connexionOff.png"> </img> </td><td>Robot connexion</td> 
+                        </tr>
+                        <tr id="portRow">
+                            <td>Port</td><td>
+                                <select id="usb" onfocus="getPorts()"> 
+                                </select>
+                            </td> 
+                        </tr>
+                        <tr id="baudRateRow">
+                            <td>Baud rate</td><td>
+                                <select id="baudrate"> 
+                                    <option value="9600">9600</option>
+                                    <option value="19200">19200</option>
+                                    <option value="38400"selected>38400</option>
+                                    <option value="57600">57600</option>
+                                </select>
+                            </td> 
+                        </tr>
+                        <tr>
+                            <td><img id="cnxButton" src="open.png" onclick="openConnexion()"></img></td><td>Connexion</td> 
+                        </tr>
+                    </table>
+                </td>
+                <td rowspan="3">
+                    <canvas width="1200" height="600" id="dessin"> </canvas>
+                </td>
+            </tr>
+            <tr>
+                <td width="15%">
+                    <table id="Obstacles">
+                        <tr><td colspan="2"><img src="garden.png" onclick="selectObs(-1)" size="80%"/> </td><td><img src="edit.png" onclick="edit('garden')"/></td></tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <img id="add" src="add.png" onclick="addObstacle()"/>
+                </td >
+            </tr>
+        </table>
+    </body>
+</HTML>

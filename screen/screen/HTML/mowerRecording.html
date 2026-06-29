@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+    </head>
+    
+    <body onload="loadFile();" onresize="resize();">
+        <script async type= "text/javascript" src="mowerRecording.js">
+        </script>
+
+        <table id="head" width="100%"  text-align="center" >
+            <tr>
+                <td width= "30%">
+                    <img id="status" src="recording/connexionOn.png" width= "100%"/>
+                </td>
+                <td width= "30%">
+                    <img id="avance" src="recording/avance.png" width= "100%" onclick="moving('forward')"/>
+                </td>
+                <td width= "30%">
+                    <table width="100%"> 
+                        <tr><td colspan= "2é text-align="center"><font size="+3"><center><p id="objName">Obstacle / Jardin</p></center></font></td></tr>
+                        <tr><td text-align="center"><font size="+3"><center><p id="objPoint">nbPoints: xxxx</p></center></font></td>
+                        <td text-align="center"><font size="+3"><center><p id="objPosition">0, 0</p></center></font></td></tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td width= "30%">
+                    <img id="droite" src="recording/gauche.png" width="100%" onclick="moving('right')"/>
+                </td>
+                <td width= "30%">
+                    <img id="record" src="recording/start.png" width="100%" onclick="record()"/>
+                </td>
+                <td width= "30%">
+                    <img id="gauche" src="recording/droite.png" width="100%" onclick="moving('left')"/>
+                </td>
+            </tr>
+            <tr>
+                <td id="points" width="30%">
+                    <img id="avance" src="recording/exit.png" width= "100%" onclick="exit()"/>
+                </td>
+                <td width= "30%">
+                    <img id="avance" src="recording/recule.png" width="100%" onclick="moving('backward')"/>
+                </td>
+                <td width= "30%">
+                    <img src="recording/clear.png" width="100%" onclick="clean()"/> 
+                </td>
+            </tr>
+        </table>
+    </body>
+</HTML>
