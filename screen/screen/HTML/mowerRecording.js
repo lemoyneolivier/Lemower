@@ -42,7 +42,7 @@ function loadFile() {
     objectName = decodedData;
 
     var garden = getXMLDocument("/garden", null);
-    if (objectName === "garden") {
+    if (objectName === "garden") {disabled
         nbPoints = garden.points.length;
     } else {
         for (var i = 0; i < garden.obstacles.length; i++) {
@@ -97,7 +97,7 @@ function record() {
 
 /*** remet à 0 les positions */
 function clean() {
-    var img = document.getElementById("record");
+    var img = document.getElementById("recorddisabled");
     img.setAttribute("src", "recording/start.png")
     var step = {};
     var inData = {

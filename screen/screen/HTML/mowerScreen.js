@@ -19,6 +19,12 @@ var pathIndex = 0;
 var gardenMap;
 var garden;
 
+var obectId = -1;
+var objectName = "Garden";
+var nbPoints = 0;
+var position = "0, 0";
+var recordPath = false;
+
 var connexionStatus = false;
 
 function getXMLDocument (fname, data) {
@@ -212,6 +218,45 @@ function showConnexion () {
         img.src = "open.png";
     }
 }
+
+
+/*** recalcul de la MAP  */
+function endRecording () {
+
+    var tble = document.getElementById("recording");
+    tble.style.display = "none";
+
+    tble = document.getElementById("settings");
+    tble.style.display = "block";
+
+}
+
+function loadRecording(objectName) { 
+
+    var tble = document.getElementById("recording");
+    tble.style.display = "block";
+
+    tble = document.getElementById("settings");
+    tble.style.display = "none";
+
+    if (objectName === "garden") {
+        nbPoints = garden.points.length;
+    } else {
+        for (var i = 0; i < garden.obstacles.length; i++) {
+            var obs = garden.obstacles[i];
+            if (obs.name == objectName) {
+                nbPoints = obs.points.length;
+            }
+        }
+    }
+    var pos = getXMLDocument("/position", null);
+
+    updatePoints();
+
+    var name = document.getElementById("objName");
+    name.innerText = objectName;
+}
+
     
 
 // Dessine la zone de tonte et le chemin de la tondeuse
@@ -412,4 +457,69 @@ function getX(x) {
 
 function getY(y) {
     return centerY-y*taux;  
+}
+
+/****mise à jour des éléments de points  */
+function updatePoints() {
+    var pts = document.getElementById("objPoint");
+    pts.innerText = "NB Points "+nbPoints;
+
+    var pos = document.getElementById("objPosition");
+    pos.innerText = position;
+}
+
+/**************************** 
+ * enregistre le chemin  
+ * ***************************/ 
+function record() {
+    var step = {};
+    var inData = {
+        element: objectName
+    }
+    recordPath = !recordPath;
+    // mise à jour sur le serveur
+    if (recordPath) {
+        var img = document.getElementById("record");
+        img.setAttribute("src", "recording/stop.png")
+        inData.action = "start";
+    } else {
+        var img = document.getElementById("record");
+        img.setAttribute("src", "recording/start.png")
+        inData.action = "stop";
+    }
+    step = getXMLDocument("/recording", inData);
+    position = step.x+", "+step.y;
+    nbPoints = step.nbPoints;
+    updatePoints();
+}
+
+/*** remet à 0 les positions */
+function clean() {
+    var img = document.getElementById("record");
+    img.setAttribute("src", "recording/start.png")
+    var step = {};
+    var inData = {
+        element: objectName
+    }
+    recordPath = false;
+    inData.action = "clean";
+    step = getXMLDocument("/recording", inData);
+    position = step.x+", "+step.y;
+    nbPoints = 0;
+    updatePoints();
+}
+
+/** moving the rover to the required direction
+ * function that moves are returning the number of points and the position
+*/
+function moving(dir) {
+    var step = {};
+    var inData = {
+        element: objectName,
+        direction : dir
+    }
+    step = getXMLDocument("/move", inData);
+    position = step.x+", "+step.y;
+    nbPoints = step.nbPoints;
+    updatePoints();
 }

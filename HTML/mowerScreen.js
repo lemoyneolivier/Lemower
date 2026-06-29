@@ -144,6 +144,7 @@ function drawScene (){
     ctx.moveTo(getX(0), getY(0));
     var lastX = 0;
     var lastY = 0;
+    lastElem = null;
 
     for (var e = 0; e< positions.posList.length; e++) {
         var elem = positions.posList[e];
@@ -161,7 +162,12 @@ function drawScene (){
     drawCuttingArea(ctx, map);
 
     drawMower(ctx, lastX, lastY, lastAngle);
-    document.getElementById("position").innerText=Math.floor(lastX);
+    // Setting the mover details
+    document.getElementById("position").innerText="x ="+Math.floor(lastX)+" y ="+Math.floor(lastY);
+    document.getElementById("speed").innerText=lastElem.speed;
+    document.getElementById("direction").innerText=lastElem.dir;
+    document.getElementById("battery").innerText=lastElem.battery;
+    document.getElementById("collision").innerText=lastElem.collision;
 }
 
 

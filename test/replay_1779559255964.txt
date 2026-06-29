@@ -1,0 +1,9 @@
+L 1779559255964 Port is opened
+L 1779559268452 Read R
+R
+L 1779559268459 w a 2
+L 1779559268462 Read L received a 2
+L received a 2
+L 1779559268464 Read L Avance
+L Avance
+L 1779559270450 Read I 37.93 0.00 0.00 2 78 0

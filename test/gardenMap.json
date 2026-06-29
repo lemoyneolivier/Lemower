@@ -1,0 +1,29 @@
+{
+    "zone" : {
+        "min_x" : 0,
+        "min_y" : -25,
+        "nb_x" : 75,
+        "nb_y" : 50},
+    "obstacles" : [
+        {
+        "nom" : "Abri",
+        "min" : {"x" : 15, "y": -25},
+        "size" : {"x" : 60, "y": 2}
+        },
+        {
+        "nom" : "Arbre",
+        "min" : {"x" : 12, "y": 18},
+        "size" : {"x" : 2, "y": 2}
+        },
+        {
+        "nom" : "Tortue",
+        "min" : {"x" : 3, "y": 24},
+        "size" : {"x" : 2, "y": 2}
+        },
+        {
+        "nom" : "Prunier",
+        "min" : {"x" : 30, "y": 22},
+        "size" : {"x" : 45, "y": 3}
+        } 
+    ]
+}

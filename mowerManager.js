@@ -49,11 +49,14 @@ module.exports = {
             };
 
             // calcul de la vitesse 
-            var speed = Math.sqrt(Math.pow(x-lastPosition.x, 2) + Math.pow(y-lastPosition.y, 2));
+            var speed = 0;
+            if (lastPosition.x != undefined) {
+              speed = Math.sqrt(Math.pow(infos.x-lastPosition.x, 2) + Math.pow(infos.y-lastPosition.y, 2));
+            }
 
             lastPosition = {
-              x : x,
-              y : y,
+              x : infos.x,
+              y : infos.y,
               speed : speed
             }
 

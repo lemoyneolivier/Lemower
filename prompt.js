@@ -3,7 +3,7 @@ var serialport = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline')
 
 var SerialPort = serialport.SerialPort; 
-myPort = new SerialPort( {path:'/dev/ttyACM0', baudRate: 9600});
+myPort = new SerialPort( {path:'/dev/ttyACM0', baudRate: 115200});
 
 const parser = myPort.pipe(new ReadlineParser({ delimiter: '\r\n' }))
 parser.on('data', console.log)

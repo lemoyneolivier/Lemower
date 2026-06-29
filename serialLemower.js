@@ -15,6 +15,8 @@ var serialport = require('serialport');
 const { execFile } = require('node:child_process');
 const fs = require('fs');
 
+var orderList= [];
+
 var config = {};
 if (process.argv.length > 2) {
   if (fs.existsSync(process.argv[2])) {
@@ -37,18 +39,27 @@ if (process.argv.length > 2) {
 const mower = require('./mowerManager.js');
 const garden = require("./maps.js");
 const map = garden.readFromFile("./test/gardenMap.json");
+var logfile = "";
 
 var myPort;
 var isConnected = false;
+var orderSent = false;
 
 var isReady = false;
 
 
+function log(msg ) {
+  if (logfile != "") {
+    fs.appendFileSync(logfile, "L "+Date.now()+" "+msg+"\n");
+  } else {
+    console.log("L "+Date.now()+" "+msg+"\n");
+  }
+}
 
 function connect () {
 
   if (isConnected == true) {
-    console.log("Connected");
+    log("Connected");
     return;
   } 
 
@@ -61,16 +72,16 @@ function connect () {
   }
 
   if (targetPort == "Not found") {
-    console.log("No connexion available ");
+    log("No connexion available ");
     return;
   }
 
-  console.log("port = "+targetPort);
+  log("port = "+targetPort);
 
   const { ReadlineParser } = require('@serialport/parser-readline');
   var SerialPort = serialport.SerialPort; 
 
-  var logfile = config.replay+Date.now()+".txt";
+  logfile = config.replay+Date.now()+".txt";
 
 
 
@@ -83,13 +94,13 @@ function connect () {
     myPort.on('open', onOpen);  
 
     myPort.on('error', function(err) {
-      console.log('Error: ', err.message)
+    log('Error: ', err.message)
     })
 
 
   } catch (error) {
     console.error(error);
-    console.log("Error ");
+    log("Error "+error);
     return;
   }
 }
@@ -97,19 +108,33 @@ function connect () {
 // Opens the connexion
 connect ();
 
-setInterval(connect, 5000);
+setInterval(connect, 10000);
 
 /**
  * Ouverture du port de communication avec Arduino
  */
 function onOpen() {
   try {
-    console.log("Port is opened");
-    isConnected = true;
     logfile = config.replay+Date.now()+".txt";
+    log("Port is opened");
+    isConnected = true;
   } catch (error) {
     isConnected = false;
   }
+}
+
+function reply (cmd) {
+  isReady = true;
+  if (orderSent == true) {
+    return -1;
+  }
+  myPort.write(cmd+">", function(err) {
+    if (err) {
+      return console.log('Error on write: ', err.message)
+    }
+    orderSent = true;
+    log('w '+ret);
+  });
 }
 
 
@@ -119,16 +144,31 @@ function onOpen() {
  * @param {} data 
  */
 function onData(data) {
-    console.log("Read "+data);
-    //     execLine : function(garden, replayName, ready, line) {
-    ret = mower.execLine(map, logfile, isReady, data);
-    if (ret != "") {
-      isReady = true;
-      myPort.write(ret+">", function(err) {
-        if (err) {
-          return console.log('Error on write: ', err.message)
+    log("Read "+data);
+    if (data == "Done") { 
+      //est dispo pour le prochain message
+      orderSent = false;
+      // envoie le message suivant si possible
+      if (orderList.length > 0) {
+        var msg = orderList.shift(); 
+        reply(msg);
+      }
+    } else {
+      //     execLine : function(garden, replayName, ready, line) {
+      ret = mower.execLine(map, logfile, isReady, data);
+      if (ret.length > 0) {
+        for(var i = 0; i < ret.length; i++) {
+          // ajoute la ou les commandes dans le pipeline d'execution 
+          orderList.push(ret[i]);
         }
-        console.log('w '+ret);
-      });
+        if (orderSent == false) {
+          if (orderList > 0) {
+            order = orderList.shift();
+          // execute la commande 
+          if (order.startsWith("exec ")) { // simple commande
+            reply (order.substring(5)); 
+          }
+        }
+      }
     }
 }
