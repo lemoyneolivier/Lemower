@@ -32,10 +32,39 @@ const mimeTypes = {
   '.pdf': 'application/pdf'
 };
 
-const publicDir = path.resolve(__dirname)+'/HTML';
+/** récupere les données du fichier de configuration passé en paramètre */
+var config = {};
+if (process.argv.length > 2) {
+  if (fs.existsSync(process.argv[2])) {
+    let rawdata = fs.readFileSync(process.argv[2]);
+    config = JSON.parse(rawdata);
+  } else { 
+    console.error("Defined config file not found !\n"+process.argv[2]);
+    return 1;
+  }
+} else  {
+  if (fs.existsSync("./config.json")) {
+    let rawdata = fs.readFileSync("./config.json");
+    config = JSON.parse(rawdata);
+  } else {
+    console.error("Default config file not found !");
+    return 1;
+  }
+}
 
-const gardenFile = path.join(publicDir, 'garden.json');
+
+
+//const publicDir = path.resolve(__dirname)+'/HTML';
+const publicDir = path.resolve(config.serverPath);
+const gardenFile = config.gardenFile;
+
+//const gardenFile = path.join(publicDir, 'garden.json');
 garden.readGarden(gardenFile);
+
+// passe le robot en mode test
+if (config.testMode) {
+  mower.isTest = true;
+}
 
 /**
  * bouge le robot et enregistre ou pas
@@ -329,7 +358,7 @@ if (req.url === '/path') {
   // Critical security check: ensure resolved path is within publicDir
   if (!safePath.startsWith(publicDir)) {
     res.writeHead(403, { 'X-Content-Type-Options': 'nosniff' });
-    res.end('Forbidden');
+    res.end('Forbidden '+reqPath);
     return;
   }
   

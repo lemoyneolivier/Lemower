@@ -17,7 +17,7 @@ module.exports = {
     garden : {},
     angleGap : 10,
     stepSize : 10,
-    gardenName : "garden",
+    gardenName : "Garden",
 
     getNBObstacles : function () {
         return this.garden.obstacles.length
@@ -50,7 +50,7 @@ module.exports = {
 
         /** Renomme un obstacle */
     cleanPoints : function (elem) {
-        var o = getGardenElement(elem);
+        var o = this.getGardenElement(elem);
         o.points= [];
     },
 

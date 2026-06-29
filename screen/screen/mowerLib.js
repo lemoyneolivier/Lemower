@@ -12,12 +12,17 @@ module.exports = {
     orderSent : false,
     orderList :[],
     isReady : false,
+    isTest : false,
     execAction : function (data){} ,
     execInfo : function (data){},
 
     /** retourne un tableau de connexions USB possibles */
     getPorts : function () {
         var p = [];
+        if (this.isTest) {
+            p.push("TEST");
+        }
+
         if (fs.existsSync ("/dev/ttyACM0")) {
         p.push("ttyACM0");
         } 
@@ -51,9 +56,17 @@ module.exports = {
 
     /** ouvre la connexion avec la tondeuse 
      *    port 
-     *    baudRate
+     *    baudRatepath.resolve
     */
     connect : function (port, baudRate) {
+
+        if (this.isTest) {
+            this.log("Test connected");
+            this.isConnected = true;
+            this.isReady = true;
+            return;
+        }
+
         if (this.isConnected == true) {
             this.log("Connected");
             return;
@@ -102,6 +115,11 @@ module.exports = {
 
     /** reply an order to Arduino */
     reply : function (cmd) {
+
+        if (this.isTest) {
+            return;
+        }
+
         if (!this.isReady) {
             return;
         }

@@ -231,6 +231,17 @@ function endRecording () {
 
 }
 
+function exit() {
+    var tble = document.getElementById("recording");
+    tble.style.display = "none";
+
+    tble = document.getElementById("settings");
+    tble.style.display = "block";
+
+    loadFile();
+}
+
+
 function loadRecording(objectName) { 
 
     var tble = document.getElementById("recording");
@@ -312,11 +323,11 @@ function remove(val) {
 /** opens the obstacle or garden for edit */
 function edit(val) {
     if (val == "garden") {
-        open("mowerRecording.html?garden="+val);
+        loadRecording(val);
     } else {
         // get the name of the row
         var editor = document.getElementById("Obstacle"+val);
-        open("mowerRecording.html?garden="+editor.value);
+        loadRecording(editor.value);
     }
 }
 
