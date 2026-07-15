@@ -2,13 +2,24 @@
 
 const fs = require('fs');
 
+
+const GRASS = 0;
+const LIMIT = 1;
+const DEAD_END = 2;
+const OUT_OF_BOUNDS = 3;
+const OUT_OF_MAPS= 4;
+
+const NORTH = 0;
+const EAST = 1; 
+const SOUTH = 2;
+const WEST = 3;
+
 /***Module to manage the map */
 module.exports = {
 
 /** Variable globale - jardin général */
-    garden : {},
-    blockSize : 10,
-
+   blockSize : 10,
+   mowerDirection : NORTH,
 
 //** calcule la boite englobante du jardin / obstacle*/
     getBounds : function  (map) {
@@ -78,6 +89,31 @@ module.exports = {
         return coordinatesArray;
     },
 
+    /******************************************************************
+     * recherche les voies sans issues - points ou il y a uniquement 1 seule voie accessible 
+     * dead ends are marked with DEAD_END in the map
+     * When a dead end appends, it is autorized to go back to the previous block, but not to go forward
+    */
+    identifyDeadEnds : function (map) {
+        // pour chaque élément de la carte, identifie si il a des paternes de dead end
+        for (var x = 0; x < map.length; x++) {
+            for (var y = 1; y < map[0].length-1; y++) {   
+                if ((map[x][y-1] > LIMIT) && (map[x][y] == LIMIT) && (map[x][y+1] > LIMIT) ) {
+                    console.log("Dead end "+x+", "+y+" "+map[x][y-1]+" "+map[x][y]+" "+map[x][y+1]);
+                    map[x][y] = DEAD_END;
+                }
+            }
+        }
+        for (var y = 0; y < map[0].length; y++) {   
+            for (var x = 1; x < map.length-1; x++) {
+                if ((map[x-1][y] > LIMIT) && (map[x][y] == LIMIT) && (map[x+1][y] > LIMIT) ) {
+                    console.log("Dead end "+x+", "+y+" "+map[x-1][y]+" "+map[x][y]+" "+map[x+1][y]);
+                    map[x][y] = DEAD_END;
+                }
+            }
+        }
+    },
+
 /**********************************************************************
  *  cree une grille de blocs à partir du jardin et des obstacles
  *      gestion de la position du point dans le bloc.
@@ -85,6 +121,9 @@ module.exports = {
     createBlocks : function(map) {
         // simplification de la carte sous la forme de liste de blocs
         var blocks = [];
+        if (map.bounds === undefined) {
+            map.bounds = this.getBounds(map);
+        }
         var midx = map.bounds.minX + (map.bounds.maxX - map.bounds.minX)/2;
         var midy = map.bounds.minY + (map.bounds.maxY - map.bounds.minY)/2;
         console.log("Mid : " + midx + "," + midy+ " - "+map.points.length);
@@ -169,13 +208,13 @@ module.exports = {
         for (var i = 0; i < sizeX; i++) {
             map[i] = []; 
             for (var j = 0; j < sizeY; j++) {
-                map[i][j] = 0; // 0 pour les cases vides
+                map[i][j] = GRASS; // 0 pour les cases vides
             }
         }
 
         // mets 1 sur tous les bords de la carte
         blocks.forEach(function(block) {
-            map[block.x - minX][block.y - minY] = 1; // 1 pour les cases occupées
+            map[block.x - minX][block.y - minY] = LIMIT; // 1 pour les cases occupées
         });
 
 
@@ -185,18 +224,18 @@ module.exports = {
             // rechreche les premiers blocs
             var p = 0;
             while (p < sizeY ) {
-                if (map[i][p] === 1) {
+                if (map[i][p] === LIMIT) {
                     break;
                 }
-                map[i][p] = 2; // 2 pour les cases hors carte
+                map[i][p] = OUT_OF_BOUNDS; // 2 pour les cases hors carte
                 p++;
             }
             p =  sizeY-1
             while (p > 0) {
-                if (map[i][p] === 1) {
+                if (map[i][p] === LIMIT) {
                     break;
                 }
-                map[i][p] = 2; // 2 pour les cases hors carte
+                map[i][p] = OUT_OF_BOUNDS; // 2 pour les cases hors carte
                 p--;
             }
         }
@@ -205,18 +244,18 @@ module.exports = {
             // rechreche les premiers blocs
             var p = 0;
             while (p < sizeX ) {
-                if (map[p][i] === 1) {
+                if (map[p][i] === LIMIT) {
                     break;
                 }
-                map[p][i] = 2; // 2 pour les cases hors carte
+                map[p][i] = OUT_OF_BOUNDS; // 2 pour les cases hors carte
                 p++;
             }
             p =  sizeX-1
             while (p > 0) {
-                if (map[p][i] === 1) {
+                if (map[p][i] === LIMIT) {
                     break;
                 }
-                map[p][i] = 2; // 2 pour les cases hors carte
+                map[p][i] = OUT_OF_BOUNDS; // 2 pour les cases hors carte
                 p--;
             }
         }
@@ -261,22 +300,23 @@ module.exports = {
                 if (dRight != -1) { // si il existe un block à droite
                     console.log("Right "+(block.x+1- minX)+" - "+(dRight-1)+" "+(block.y-minY));
                     for (d = block.x+1- minX; d < dRight-1; d++) {
-                        map[d][block.y-minY] = 2;
+                        map[d][block.y-minY] = OUT_OF_BOUNDS;
                     }
                 } else {
                     if (dLeft != -1) {
                         console.log("Left "+(block.x-1- minX)+" - "+(dLeft+1)+" "+(block.y-minY));
                         for (d = block.x-1- minX; d > dLeft+1; d--) {
-                            map[d][block.y-minY] = 2;
+                            map[d][block.y-minY] = OUT_OF_BOUNDS;
                         }
                     }
                 }
             }           
         }
+        this.identifyDeadEnds(map);
         return map;
     },
 
-    getBlock : function (map, point) {
+    getBlock : function (garden, map, point) {
         var midx = map.bounds.minX + (map.bounds.maxX - map.bounds.minX)/2;
         var midy = map.bounds.minY + (map.bounds.maxY - map.bounds.minY)/2;
         var minX = Math.floor(garden.bounds.minX / blockSize);
@@ -312,9 +352,9 @@ module.exports = {
         var diry = target.y - position.y;
         var dirx = target.x - position.x;
 
-        var limite = 1;
+        var limite = LIMIT; 
         if (acceptLimit) {
-            limite = 2;
+            limite = OUT_OF_BOUNDS;
         }
         
         var directionX = dirx/Math.abs(dirx);
@@ -408,7 +448,7 @@ module.exports = {
         var i = 0;
         if (direction == 1) {
             for (i= map.length - 1; i >= 0  ; i--) {
-                if (map[i][rowID] == 0) { break; }
+                if (map[i][rowID] == GRASS) { break; }
             }
             if (i <= 0) {
                 console.log("No free block found in row "+rowID);
@@ -416,7 +456,7 @@ module.exports = {
             }
         } else {
             for (i= 0; i < map.length; i++) {
-                if (map[i][rowID] == 0) { break; }
+                if (map[i][rowID] == GRASS) { break; }
             }
             if (i == map.length) {
                 console.log("No free block found in row "+rowID+" "+map.length);
@@ -435,11 +475,9 @@ module.exports = {
     gotoTarget : function(map, block, target, acceptLimit) {
         path = [];
         var isFinished = false;
-        var nb = 0;
         while (!isFinished) {
-            var next = getNextBlock (map, block, target, acceptLimit);
-            nb ++;
-    //        console.log("Next : " + next.x + "," + next.y);
+            var next = this.getNextBlock (map, block, target, acceptLimit);
+            console.log("Next : " + next.x + "," + next.y);
             if (nb > 200) {
                 console.log("Too many blocks in path, possible infinite loop - "+block.x+","+block.y+" "+target.x+","+target.y);
                 throw new Error("Too many blocks in path, possible infinite loop - "+block.x+","+block.y+" "+target.x+","+target.y);
@@ -467,66 +505,111 @@ module.exports = {
      * 
      *    last = path défini actuellement pour ne pas revenir sur ses pas
      */
-    getNextLine : function (map, block, path, limite) {
-        var area = [3, 3, 3, 3, 3, 3, 3, 3, 3]; /// liste des points autour de la position actuelle
+    getNextLine : function (map, block, path, direction) {
+        var area = [{value: OUT_OF_MAPS}, {value: OUT_OF_MAPS}, {value: OUT_OF_MAPS}, 
+            {value: OUT_OF_MAPS}, {value: OUT_OF_MAPS}, {value: OUT_OF_MAPS}, 
+            {value: OUT_OF_MAPS}, {value: OUT_OF_MAPS}, {value: OUT_OF_MAPS}]; /// liste des points autour de la position actuelle
         // gestion des bords de la carte
-        if (block.y < map[0].length) {
+        if (block.y < map[0].length-1) {
             if (block.x > 0) {
-                area[6]= map[block.x-1][block.y+1];
+                area[3].value= map[block.x-1][block.y+1];
+                area[3].x = block.x-1;
+                area[3].y = block.y+1;
             }
-            area[2]= map[block.x][block.y+1];
+            area[2].value= map[block.x][block.y+1];
+            area[2].x = block.x;
+            area[2].y = block.y+1;
             if (block.x < map.length-1) {
-                area[7]= map[block.x+1][block.y+1];
+                area[4].value= map[block.x+1][block.y+1];
+                area[4].x = block.x+1;
+                area[4].y = block.y+1;      
             }
         }
         if (block.x > 0) {
-            area[1]= map[block.x-1][block.y];
+            area[1].value= map[block.x-1][block.y];
+            area[1].x = block.x-1;
+            area[1].y = block.y;
         }
-        area[0]= map[block.x][block.y];
+        area[0].value= map[block.x][block.y];
+        area[0].x = block.x;
+        area[0].y = block.y;
         if (block.x < map.length-1) {
-            area[3]= map[block.x+1][block.y];
+            area[6].value= map[block.x+1][block.y];
+            area[6].x = block.x+1;
+            area[6].y = block.y;
         }
         if (block.y > 0) {
             if (block.x > 0) {
-                area[5]= map[block.x-1][block.y-1];
+                area[5].value= map[block.x-1][block.y-1];
+                area[5].x = block.x-1;
+                area[5].y = block.y-1;
             }
-            area[4]= map[block.x][block.y-1];
+            area[7].value= map[block.x][block.y-1];
+            area[7].x = block.x;
+            area[7].y = block.y-1;
             if (block.x < map.length-1) {
-                area[8]= map[block.x+1][block.y-1];
+                area[8].value= map[block.x+1][block.y-1];
+                area[8].x = block.x+1;
+                area[8].y = block.y-1;
             }
         }
-        console.log(area[6]+" "+area[2]+" "+area[7]);
-        console.log(area[1]+" "+area[0]+" "+area[3]);
-        console.log(area[5]+" "+area[4]+" "+area[8]);
+        // gestion de la rotaion de la matrix en fonction de la direction du robot
+        if (direction == WEST) {
+            area = [area[0], area[7], area[1], area[5], area[3], area[8], area[2], area[6], area[4]];
+        } else if (direction == SOUTH) {
+            area = [area[0], area[6], area[7], area[8], area[5], area[4], area[1], area[2], area[3]];
+        } else if (direction == EAST) {
+            area = [area[0], area[2], area[6], area[4], area[8], area[3], area[7], area[1], area[5]];
+        }
+        console.log(area[3].value+" "+area[2].value+" "+area[4].value);  //324
+        console.log(area[1].value+" "+area[0].value+" "+area[6].value);  //106
+        console.log(area[5].value+" "+area[7].value+" "+area[8].value);  //578
         // analyse de la matrix.
         var nextBox = 0;
         // recherche la première boite compatible
-        for (i = 0; i < 8; i++) {
+        for (i = 1; i < 8; i++) {
             nextBox = i;
     //        console.log("Next "+nextBox+" "+area[nextBox]+" "+limite);
-            if ((area[nextBox]== limite) ) {  //
-    //
+            if ( (area[nextBox].value == LIMIT) || (area[nextBox].value == DEAD_END) ) {  //
                 var next = null;
-                // retourne le noeud associé au chiffre
-                if (nextBox == 2) {next = { x: block.x, y: block.y+1};} 
-                if (nextBox == 3) {next = { x: block.x+1, y: block.y};} 
-                if (nextBox == 4) {next = { x: block.x, y: block.y-1};} 
-                if (nextBox == 1) {next = { x: block.x-1, y: block.y};} 
-                if (nextBox == 6) {next = { x: block.x-1, y: block.y+1};} 
-                if (nextBox == 7) {next = { x: block.x+1, y: block.y+1};}
-                if (nextBox == 8) {next = { x: block.x+1, y: block.y-1}; }
-                if (nextBox == 5) {next = { x: block.x-1, y: block.y-1};} 
-                if (next != null) {
-                    var deja = false;
-                    for (var p = 0; (p < 9) && ( p < path.length); p ++) {
-                        if ((next.x == path[path.length -1 - p].x) && (next.y == path[path.length -1 - p].y)) {
-                            deja = true;
-                            console.log("Déjà passé "+nextBox);
-                            break;
-                        } 
+                next ={ x: area[nextBox].x, y: area[nextBox].y };
+                var deja = 0;
+                for (var p = 1; (p < 10) && ( p < path.length); p ++) {
+                    if ((next.x == path[path.length -1 - p].x) && (next.y == path[path.length -1 - p].y)) {
+                        deja ++;
+                        console.log("Déjà passé "+nextBox+" "+area[nextBox].value+" "+deja);
                     } 
-                    if (!deja) {
-                        console.log("Choose "+nextBox);
+                } 
+                if (deja == 0) {
+                    if (nextBox == 6) {
+                        this.mowerDirection = (this.mowerDirection+1) % 4;
+                    }
+                    if (nextBox == 5 || nextBox == 7 || nextBox == 8) {
+                        this.mowerDirection = (this.mowerDirection+2) % 4;
+                        console.log("tourne "+this.mowerDirection);
+                    }
+                    if (nextBox == 1) {
+                        this.mowerDirection = (this.mowerDirection+3) % 4;
+                        console.log("tourne "+this.mowerDirection);
+                    }
+                    console.log("Choose "+nextBox+" "+area[nextBox].value+" "+area[nextBox].x+" "+area[nextBox].y+" dir = "+this.mowerDirection);
+                    next.direction = this.mowerDirection; 
+                    return next;
+                } else {
+                    if ( (area[nextBox].value == DEAD_END) && (deja == 1) ) {
+                        if (nextBox == 6) {
+                            this.mowerDirection = (this.mowerDirection+1) % 4;
+                        }
+                        if (nextBox == 5 || nextBox == 7 || nextBox == 8) {
+                            this.mowerDirection = (this.mowerDirection+2) % 4;
+                            console.log("tourne "+this.mowerDirection);
+                        }
+                        if (nextBox == 1) {
+                            this.mowerDirection = (this.mowerDirection+3) % 4;
+                            console.log("tourne "+this.mowerDirection);
+                        }
+                        console.log("Choose repasse "+nextBox+" "+area[nextBox].value+" "+area[nextBox].x+" "+area[nextBox].y+" dir = "+this.mowerDirection);
+                        next.direction = this.mowerDirection; 
                         return next;
                     }
                 }
@@ -543,31 +626,36 @@ module.exports = {
     followTheLine : function (map, block, limite) {
         var path = [];
         var depart = block;
+        this.mowerDirection = NORTH;
         console.log("Départ = "+block.x+" "+block.y);
-        var next = getNextLine(map, block, path, limite);
+        var next = this.getNextLine(map, block, path, this.mowerDirection);
+        if (next == null) {
+            console.error("No next block found");
+            return path;
+        }
         console.log(next);
         block = next;
         path.push(block);
         var ok = (block.x == depart.x) && (block.y == depart.y);
         var nb = 0;
         while (!ok) {
-            next = getNextLine(map, block, path, limite);
+            next = this.getNextLine(map, block, path, this.mowerDirection);
             block = next;
             if (block == null) {
+                console.error("No next block found "+path.length);
                 break;
             }
             path.push(block);
             console.log("Block = "+block.x+" "+block.y);
             ok = (block.x == depart.x) && (block.y == depart.y);
             if (nb > 2000) {
-                console.log("On boucle ! "+depart.x+" "+depart.y); 
+                console.log("On boucle ! "+depart.x+" "+depart.y+" "+path.length); 
                 return path; 
             }
             nb ++;
         }
         return path;
     },
-
 
 
     /*** on regarde la distance la plus courte entre le point et le bord de la carte */
@@ -621,16 +709,184 @@ module.exports = {
         }
     },
 
-    /* construit la liste des blocks correspondant au parcours de la tondeuse   */
-    createPath : function(garden) {
-        var path = [];
-        map = garden.map;
-        var minx = Math.floor(garden.bounds.minX/blockSize);
-        var miny = Math.floor(garden.bounds.minY/blockSize);
-        var nbRows = Math.floor(garden.bounds.maxY/blockSize) - Math.floor(garden.bounds.minY/blockSize);
+    // renvoie un tableau de missions correspondant au parcours de la tondeuse
+    getMissions : function(garden, map, blocks) {
+        var missions = [];
 
-        var myX = (garden.departure.x/blockSize)-minx;
-        var myY = (garden.departure.y/blockSize)+miny;
+        var minx = Math.floor(garden.bounds.minX/this.blockSize);
+        var miny = Math.floor(garden.bounds.minY/this.blockSize);
+        var nbRows = Math.floor(garden.bounds.maxY/this.blockSize) - Math.floor(garden.bounds.minY/this.blockSize);
+
+        console.log("Min : " + minx + "," + miny);
+        console.log("departure : " + garden.departure.x + "," + garden.departure.y);
+
+        var myX = (garden.departure.x/this.blockSize)-minx;
+        var myY = (garden.departure.y/this.blockSize)-miny;
+        var depart = {
+                x: myX,
+                y: myY
+        };
+        missions[0] = {
+            name : "Go to the first limit",
+            type: "gotoTarget",
+            destination : this.getDirContours(map, depart),
+            withLine : true,
+            isFinished : false
+        }
+        missions[1] = {
+            name : "Mowe around the garden limit",
+            type: "followTheLine",
+            departure: missions[0].destination,
+            isFinished : false
+        }
+        /// faire le tour des obstacles
+        var last = missions[0].destination;
+        for (var i = 0; i < garden.obstacles.length; i ++) {
+            var obstacle = garden.obstacles[i];
+            var pt = this.getBlock(garden, garden, obstacle.points[0]);
+            missions[2+i*2] = {
+                name : "Go to the "+ obstacle.name +" limit",
+                type: "gotoTarget",
+                destination : pt,
+                withLine : true,
+                isFinished : false
+            }
+            last = pt;
+            missions[2+i*2+1] = {
+                name : "Mowe around the"+ obstacle.name +" limit",
+                type: "followTheLine",
+                departure: pt,
+                isFinished : false
+            }
+        }
+        var indice = 2 + garden.obstacles.length * 2;
+        var direction = -1; // 1 pour droite, -1 pour gauche
+        var rowID = 0;
+        var first = false
+        for (var id = 0; id < nbRows; id++) {
+            rowID = id;
+            direction = direction * -1;
+            var target= this.getTarget(map, rowID, direction);
+            if (target != null) {
+                if (!first) {
+                    missions[indice++] = { // mission pour avancer sur une ligne
+                        name : "Mowe the fist row",
+                        type: "mowetoTarget",
+                        destination : target,
+                        withLine : false,
+                        isFinished : false
+                    }
+                    block = target;
+                    first = true;
+                    direction = direction * -1;
+                    target= this.getTarget(map, rowID, direction);
+                    if (target == null) {
+                        continue;
+                    }
+                }
+                missions[indice++] = { //ission pour avancer sur une ligne
+                    name : "Mowe the row "+indice,
+                    type: "mowetoTarget",
+                    destination : target,
+                    withLine : false,
+                    isFinished : false
+                }
+                block = target;
+            }
+        }
+        // retour à la base
+        missions[indice++] = { //ission pour avancer sur une ligne
+            name: "Back to the base",
+            type: "gotoTarget",
+            destination : depart,
+            withLine : true,
+            isFinished : false
+        }
+
+        return missions;
+    },
+
+    /** sending back the next position  */
+    getNextStep : function(map, mission, robotPosition) {
+        if (mission.iterations === undefined) {
+                mission.iterations = 0;
+                mission.path = [];
+        }
+        mission.iterations ++;
+        if (mission.iterations > 200) {
+            console.log("Too many blocks in path, possible infinite loop - "+JSON.stringify(mission));
+            throw new Error("Too many blocks in path, possible infinite loop - "+JSON.stringify(mission));
+        }
+        var block = {x: robotPosition.x, y: robotPosition.y};
+        if (mission.type == "gotoTarget") {
+            var target = mission.destination;
+            var next = this.getNextBlock (map, block, target, mission.withLine);
+            console.log("Next : " + next.x + "," + next.y);
+            if (next.x == target.x && next.y == target.y ) {
+                // mission terminée
+                mission.isFinished = true;
+                console.log("Mission is finished");
+                return {position : next, direction : this.mowerDirection};
+            } else {            
+                if (next.x == block.x && next.y == block.y) {
+                    console.log("No free block found - same block")
+                    misssion.isFinished = true;
+                }
+            }
+            return {position : next, direction : this.mowerDirection};
+        }
+        if (mission.type == "followTheLine") {
+            mission.iterations ++;
+            var depart = mission.departure;
+            this.mowerDirection = robotPosition.azimut;
+            var next = this.getNextLine(map, block, mission.path, this.mowerDirection);
+            if (next == null) {
+                console.error("No next block found");
+                mission.isFinished = true;
+                return null;
+            } else {
+                mission.path.push(next);
+            }
+            console.log("Step = "+JSON.stringify(next)+" "+ JSON.stringify(depart));
+            if ((next.x == depart.x) && (next.y == depart.y)) {
+                // mission terminée
+                console.log("Mission is finished");
+                mission.isFinished = true;
+            }
+            return {position : next, direction : this.mowerDirection};
+        }
+        if (mission.type == "mowetoTarget") {
+            var target = mission.destination;
+            var next = this.getNextBlock (map, block, target, mission.withLine);
+            console.log("Next : " + next.x + "," + next.y);
+            if (next.x == target.x && next.y == target.y ) {
+                // mission terminée
+                console.log("Mission is finished");
+                mission.isFinished = true;
+                return {position : next, direction : this.mowerDirection};
+            } else {            
+                if (next.x == block.x && next.y == block.y) {
+                    console.error("No free block found - same block")
+                    throw new Error("No free block found - same block");
+                    misssion.isFinished = true;
+                }
+            }
+            return {position : next, direction : this.mowerDirection};
+        }
+    },
+
+    /* construit la liste des blocks correspondant au parcours de la tondeuse   */
+    createPath : function(garden, map) {
+        var path = [];
+        var minx = Math.floor(garden.bounds.minX/this.blockSize);
+        var miny = Math.floor(garden.bounds.minY/this.blockSize);
+        var nbRows = Math.floor(garden.bounds.maxY/this.blockSize) - Math.floor(garden.bounds.minY/this.blockSize);
+
+        console.log("Min : " + minx + "," + miny);
+        console.log("departure : " + garden.departure.x + "," + garden.departure.y);
+
+        var myX = (garden.departure.x/this.blockSize)-minx;
+        var myY = (garden.departure.y/this.blockSize)-miny;
         var depart = {
                 x: myX,
                 y: myY
@@ -643,25 +899,25 @@ module.exports = {
         console.log("Round departure : " + block.x + "," + block.y);
         console.log("Round target : " + roundTarget.x + "," + roundTarget.y);
         path = this.gotoTarget(map, block, roundTarget, true);
-        path.push(roundTarget);
         // add the hedge of the path - sens des aiguille d'une montre
         block = roundTarget;
-        var linePath = this.followTheLine(map, roundTarget, 1);
+        var linePath = this.followTheLine(map, roundTarget, DEAD_END);
         block = linePath[linePath.length -1];
         path = path.concat(linePath);
+        console.log("Round end : " + path.length);
         
         /// faire le tour des obstacles
         for (var i = 0; i < garden.obstacles.length; i ++) {
             console.log("OBS departure : " + block.x + "," + block.y);
             var obstacle = garden.obstacles[i];
-            var pt = getBlock(garden, obstacle.points[0]);
+            var pt = this.getBlock(garden, garden, obstacle.points[0]);
             console.log("OBS target : " + pt.x + "," + pt.y);
             try {
-                var obsPath = gotoTarget(map, block, pt, true);
+                var obsPath = this.gotoTarget(map, block, pt, true);
                 obsPath.push(pt);
                 block = pt;
                 path = path.concat(obsPath);
-                var linePath = followTheLine(map, block, 1);
+                var linePath = this.followTheLine(map, block, DEAD_END);
                 console.log("OBS target 2 : " + block.x + "," + block.y);
                 block = linePath[linePath.length -1];
                 path = path.concat(linePath);
@@ -684,22 +940,22 @@ module.exports = {
                 console.log("Row "+rowID+"/"+nbRows);
                 console.log("Depart "+block.x+","+block.y);
                 direction = direction * -1;
-                var target= getTarget(map, rowID, direction);
+                var target= this.getTarget(map, rowID, direction);
                 if (target != null) {
                     if (!first) {
                         console.log("Target : " + target.x + ", " + target.y);
-                        var rowPath = gotoTarget(map, block, target, false);
+                        var rowPath = this.gotoTarget(map, block, target, false);
                         path = path.concat(rowPath);
                         block = target;
                         first = true;
                         direction = direction * -1;
-                        target= getTarget(map, rowID, direction);
+                        target= this.getTarget(map, rowID, direction);
                         if (target == null) {
                             continue;
                         }
                     }
                     console.log("Target : " + target.x + ", " + target.y);
-                    var rowPath = gotoTarget(map, block, target, false);
+                    var rowPath = this.gotoTarget(map, block, target, false);
                     path = path.concat(rowPath);
                     block = target;
                 }

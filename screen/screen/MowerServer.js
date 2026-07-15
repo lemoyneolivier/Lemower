@@ -8,11 +8,15 @@ const mower = require("../screen/mowerLib.js");
 
 
 //dirname = "c:/Users/a025237/Code/";
-
+/** Robot position in cm (integers) */
 var robotPosition = {
-  x : 0,
-  y : 0,
-  direction : 0 /// degrès par rapport ç l'axe Y
+  x : 4.0,
+  y : 14.0,
+  direction : 0, /// degrès par rapport ç l'axe Y
+  azimut : 0,
+  missionId : 0,
+  batteriePct : 100,
+  collision : 0
 }
 
 var addPointNext= false;
@@ -66,6 +70,29 @@ if (config.testMode) {
   mower.isTest = true;
 }
 
+// mets à jour le robotposition
+// reagit en cas de collision / batterie faible
+mower.execInfo = function (data){
+  // affiche la data sur la console
+  console.log("Info "+JSON.stringify(data));
+  // sous la forme de chaine de caractères
+  // I x y dir speed bat collision
+  const words = data.split(" ");
+  robotPosition.x = parseFloat(words[1]);
+  robotPosition.y = parseFloat(words[2]);
+  robotPosition.direction = parseFloat(words[3]);
+  robotPosition.batteriePct = parseInt(words[5]);
+  robotPosition.collision = parseInt(words[6]);
+}
+
+// mets à jour le robotposition
+// reagit en cas de collision / batterie faible
+mower.execAction = function (data){
+  // affiche la data sur la console
+  console.log("Action "+JSON.stringify(data));
+}
+
+
 /**
  * bouge le robot et enregistre ou pas
  * @param {*} element 
@@ -84,7 +111,7 @@ function move(element, dir) {
   var rep = {
       x:robotPosition.x,
       y:robotPosition.y
-  };
+  }
   if (dir == "forward") {
     if (addPointNext ) {
       garden.addPoint(rep, element);
@@ -96,8 +123,8 @@ function move(element, dir) {
       }
     }
     mower.sendCmd("f");
-    robotPosition.x += Math.floor(garden.stepSize*Math.cos(robotPosition.direction/180*Math.PI)*1000.0)/1000.0;
-    robotPosition.y += Math.floor(garden.stepSize*Math.sin(robotPosition.direction/180*Math.PI)*1000.0)/1000.0;
+    robotPosition.x += Math.floor(garden.stepSize*Math.cos(robotPosition.direction/180*Math.PI));
+    robotPosition.y += Math.floor(garden.stepSize*Math.sin(robotPosition.direction/180*Math.PI));
     rep.x = robotPosition.x;
     rep.y = robotPosition.y;
     // fait avancer le rover
@@ -113,8 +140,8 @@ function move(element, dir) {
       }
     }
     mower.sendCmd("b");
-    robotPosition.x -= Math.floor(garden.stepSize*Math.cos(robotPosition.direction/180*Math.PI)*1000.0)/1000.0;
-    robotPosition.y -= Math.floor(garden.stepSize*Math.sin(robotPosition.direction/180*Math.PI)*1000.0)/1000.0;
+    robotPosition.x -= Math.floor(garden.stepSize*Math.cos(robotPosition.direction/180*Math.PI));
+    robotPosition.y -= Math.floor(garden.stepSize*Math.sin(robotPosition.direction/180*Math.PI));
     rep.x = robotPosition.x;
     rep.y = robotPosition.y;
   }
@@ -135,10 +162,13 @@ function move(element, dir) {
   if (robotPosition.direction < -180) {
       robotPosition.direction += 360;
   }
+  console.log("Move "+dir+" to "+robotPosition.x+","+robotPosition.y+" dir "+robotPosition.direction);
   return rep;
 }
 
 const requestListener = (req, res) => {
+
+  console.log("Request "+req.url);
 
   // update un object name  
   if (req.url === '/update') {
@@ -188,7 +218,8 @@ const requestListener = (req, res) => {
           isRecording = false;
         }
  
-        if (obs.points.length > 0) {
+
+        if ((obs.points != null) && (obs.points.length > 0)) {
           var pt = obs.points[obs.points.length-1];
           if (pt != null) {
             //on ajout un point ou supprime tous les points
@@ -242,11 +273,13 @@ const requestListener = (req, res) => {
           console.log("Element not found "+ask.element);
           return;
         }
-
+        if (obs.points === undefined) {
+           obs.points= [];
+        }
         // mouvemnt du rover
         var rep = move(ask.element, ask.direction);
+//        console.log("Move : "+ask.element+" "+JSON.stringify(rep));
         rep.nbPoints = obs.points.length;
-        console.log("Move : "+JSON.stringify(rep));
         garden.writeGarden();
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(rep));
@@ -274,8 +307,6 @@ const requestListener = (req, res) => {
       return;
   }
 
-
-
   if (req.url== '/position') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(robotPosition));
@@ -284,18 +315,37 @@ const requestListener = (req, res) => {
 
   /** returns a status based on 
    *     connexion status, position, bettary, mowing position
+   *     gestion d'un mode test
    */
   if (req.url== '/status') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       var result = {};
-      if (mower.isConnected) {
-        if (mower.isReady) {
+      if (mower.isTest) {
           result.connexion = "Ready";
-        } else {
-          result.connexion = "Connecting";
-        }
+          // recherche les données au hasard
+          result.position = { x:robotPosition.x, y: robotPosition.y, dir: robotPosition.direction};
+          result.logs = mower.logList;
+          result.battery = Math.floor(Math.random()*100);
+          if (Math.random() < 0.01) {
+            result.collision = 1;
+          } else {
+            result.collision = 0;
+          }
       } else {
-          result.connexion = "Not";
+        if (mower.isConnected) {
+          if (mower.isReady) {
+            result.connexion = "Ready";
+            // recherche les données au hasard
+            result.position = { x:robotPosition.x, y: robotPosition.y, dir: robotPosition.direction};
+            result.logs = mower.logList;
+            result.battery = robotPosition.batteryPct;
+            result.collision = robotPosition.collision;
+          } else {
+            result.connexion = "Connecting";
+          }
+        } else {
+            result.connexion = "Not";
+        }
       }
       res.end(JSON.stringify(result));
       return;
@@ -320,30 +370,56 @@ const requestListener = (req, res) => {
 
 
 if (req.url === '/path') {
-    fs.readFile(path.join(publicDir, 'path.json'), 'utf8', (err, data) => {
-      if (err) {
-        res.writeHead(500, { 'X-Content-Type-Options': 'nosniff' });
-        res.end('Server error');
-        return;
-      }
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(data);
-    });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(garden.path));
+    console.log("Path : "+garden.path.length+" "+JSON.stringify(garden.path));
+    return;
+}
+
+if (req.url === '/nextStep') { // execute le next step en fonction de la mission en cours et de la position du robot
+    console.log("Next step requested ");
+    var nextStep = garden.getNextStep(robotPosition);
+    // TODO : move the rover to the position
+    
+    // determine la direction du rover 
+    if (nextStep != null) {
+      robotPosition.x = nextStep.position.x;
+      robotPosition.y = nextStep.position.y;
+      robotPosition.azimut = nextStep.direction;
+    }  else {
+      console.log("End of the misisons"); 
+    }
+
+    // nextStep => Position + direction
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(nextStep));
+    return;
+}
+
+
+  if (req.url === '/map') {
+    // récupère la map calculée      
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(garden.map));
     return;
   }
 
-  if (req.url === '/map') {
-    fs.readFile(path.join(publicDir, 'gardenMap.json'), 'utf8', (err, data) => {
-      if (err) {
-        res.writeHead(500, { 'X-Content-Type-Options': 'nosniff' });
-        res.end('Server error');
-        return;
-      }
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(data);
-    });
+
+  if (req.url === '/piloting') {
+    const safePath = path.resolve(publicDir, '.' + "/mowerPiloting.html");
+    const ext = path.extname(safePath).toLowerCase();
+    const contentType = mimeTypes[ext] || 'application/octet-stream';
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("X-Content-Type-Options", "nosniff"); // Prevents MIME sniffing attacks
+    res.writeHead(200);
+    
+    // Stream file instead of loading into memory
+    // Critical for large files - won't consume all memory
+    const stream = fs.createReadStream(safePath);
+    stream.pipe(res);
     return;
   }
+
 
   // Normalize the request path
   let reqPath = req.url === '/' ? '/mowerSetting.html' : req.url;

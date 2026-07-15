@@ -1,8 +1,8 @@
 {
-    "serverPath" : "screen/HTML",
-    "gardenFile" : "./server/garden.json",
-    "mapFileName" : "./test/gardenMap.json",
-    "traceFileDir" : "./test",
-    "replay" : "test/replay_",
+    "serverPath" : "../screen/HTML",
+    "gardenFile" : "../server/garden.json",
+    "mapFileName" : "../test/gardenMap.json",
+    "traceFileDir" : "../test",
+    "replay" : "../test/replay_",
     "testMode" : true
 }

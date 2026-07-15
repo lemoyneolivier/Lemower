@@ -11,6 +11,7 @@ module.exports = {
     isConnected : false,
     orderSent : false,
     orderList :[],
+    logList :[],
     isReady : false,
     isTest : false,
     execAction : function (data){} ,
@@ -37,7 +38,14 @@ module.exports = {
         if (this.logfile != "") {
             fs.appendFileSync(this.logfile, "L "+Date.now()+" "+msg+"\n");
         } else {
-            console.log("L "+Date.now()+" "+msg+"\n");
+            var txt = "L "+Date.now()+" "+msg+"\n";
+            console.log(txt);
+            // ajoute le log à la logList
+            if (this.logList.length >= 10) {
+                this.logList.shift();
+            } else {
+                this.logList.push(txt);
+            }
         }
     },
 
