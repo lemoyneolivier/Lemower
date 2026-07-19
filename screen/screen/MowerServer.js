@@ -338,7 +338,7 @@ const requestListener = (req, res) => {
             // recherche les données au hasard
             result.position = { x:robotPosition.x, y: robotPosition.y, dir: robotPosition.direction};
             result.logs = mower.logList;
-            result.battery = robotPosition.batteryPct;
+            result.battery = robotPosition.batteriePct;
             result.collision = robotPosition.collision;
           } else {
             result.connexion = "Connecting";

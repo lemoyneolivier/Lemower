@@ -110,7 +110,7 @@ function showStatus () {
 
     //result.collision = 1;
     img = document.getElementById("collision");
-    if (cxn.collision != 1) {
+    if (cxn.collision == 0) {
             img.src = "imgs/NoCollision.png";
     } else {
             img.src = "imgs/Collision.png";
@@ -140,7 +140,7 @@ function getPorts() {
  *  Pushing the button to connexion   *|
  * ************************************/
 function openConnexion() {
-    if (connexionStatus == false ) {
+    if (connexionStatus == CONNEXION_OFF ) {
         var usb = document.getElementById("usb").value;
         var rate = document.getElementById("baudrate").value;
 

@@ -319,22 +319,22 @@ module.exports = {
     getBlock : function (garden, map, point) {
         var midx = map.bounds.minX + (map.bounds.maxX - map.bounds.minX)/2;
         var midy = map.bounds.minY + (map.bounds.maxY - map.bounds.minY)/2;
-        var minX = Math.floor(garden.bounds.minX / blockSize);
-        var minY = Math.floor(garden.bounds.minY / blockSize);
+        var minX = Math.floor(garden.bounds.minX / this.blockSize);
+        var minY = Math.floor(garden.bounds.minY / this.blockSize);
         var taux = 0.1;
-        var valx= Math.floor(point.x / blockSize);
-        var valy= Math.floor(point.y / blockSize);
+        var valx= Math.floor(point.x / this.blockSize);
+        var valy= Math.floor(point.y / this.blockSize);
         // la tollérence s'applique sur les bords dans le sens de l'intérieur du jardin
-        if ( (point.x <  midx) && (Math.abs(point.x % blockSize) > blockSize * (1- taux)) ) {
+        if ( (point.x <  midx) && (Math.abs(point.x % this.blockSize) > this.blockSize * (1- taux)) ) {
             valx ++;
         } 
-        if ( (point.x >  midx) && (Math.abs(point.x % blockSize) < blockSize * taux) ) {
+        if ( (point.x >  midx) && (Math.abs(point.x % this.blockSize) < this.blockSize * taux) ) {
             valx --;
         } 
-        if ( (point.y <  midy) && (Math.abs(point.y % blockSize) > blockSize * (1- taux)) ) {
+        if ( (point.y <  midy) && (Math.abs(point.y % this.blockSize) > this.blockSize * (1- taux)) ) {
             valy ++;
         } 
-        if ( (point.y >  midy) && (Math.abs(point.y % blockSize) < blockSize * taux) ) {
+        if ( (point.y >  midy) && (Math.abs(point.y % this.blockSize) < this.blockSize * taux) ) {
                 valy --;
         } 
         var block = {
