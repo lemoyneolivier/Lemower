@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+    </head>
+    
+    <body onload="loadFile();" onresize="resize();">
+        <script async type= "text/javascript" src="mowerPiloting.js">
+        </script>
+
+        <table id="wait">
+            <tr>
+                <td colspan ="3" ><img src="imgs/mowerScreen.png" width= "100%"/></td>
+            </tr>
+            <tr>
+                <td colspan ="3" ><img src="imgs/connexionWait.png" width= "100%"/></td>
+            </tr>
+        </table>
+        <table id="connexion">
+            <tr>
+                <td colspan ="3" ><img src="imgs/mowerScreen.png" width= "100%"/></td>
+            </tr>
+            <tr>
+                <td> <img id="cnxStatus" src="imgs/connexionOff.png"> </img> </td><td>Robot connexion</td> 
+            </tr>
+            <tr id="portRow">
+                <td>Port</td><td>
+                    <select id="usb" onfocus="getPorts()"> 
+                    </select>
+                </td> 
+            </tr>
+            <tr id="baudRateRow">
+                <td>Baud rate</td><td>
+                    <select id="baudrate"> 
+                        <option value="9600">9600</option>
+                        <option value="19200">19200</option>
+                        <option value="38400"selected>38400</option>
+                        <option value="57600">57600</option>
+                    </select>
+                </td> 
+            </tr>
+            <tr>
+                <td><img id="cnxButton" src="imgs/open.png" onclick="openConnexion()"></img></td><td>Connexion</td> 
+            </tr>
+        </table>
+
+        <table id="head" width="100%"  text-align="center" >
+            <tr>
+                <td colspan ="3" ><img src="imgs/mowerScreen.png" width= "100%"/></td>
+            </tr>
+            <tr>
+               <td width= "30%">
+                    <img id="status" src="imgs/connexionOn.png" width= "100%"/>
+                </td>
+                <td width= "30%">
+                    <img id="avance" src="imgs/avance.png" width= "100%" onclick="moving('forward')"/>
+                </td>
+                <td width= "30%" text-align="center">
+                    <font size="+3"> <center> <p id="position">x / y</p></center></font>
+                </td>
+            </tr>
+            <tr>
+                <td width= "30%">
+                    <img id="droite" src="imgs/gauche.png" width="100%" onclick="moving('right')"/>
+                </td>
+                <td width= "30%">
+                    <img id="collision" src="imgs/NoCollision.png" width="100%"/>
+                </td>
+                <td width= "30%">
+                    <img id="gauche" src="imgs/droite.png" width="100%" onclick="moving('left')"/>
+                </td>
+            </tr>
+            <tr>
+                <td id="points" width="30%">
+                    <img id="batterie" src="imgs/BatMidle.png" width= "50%"/>
+                    <font size="+3"> <center> <p id="batteriePct">x %</p></center></font>
+                </td>
+                <td width= "30%">
+                    <img id="avance" src="imgs/recule.png" width="100%" onclick="moving('backward')"/>
+                </td>
+                <td width= "30%" text-align="center">
+                    <font size="+3"> <center> <p id="direction">direction : </p></center></font>
+                </td>
+            </tr>
+            <tr>
+                <td colspan = "3">
+                    <table id="infos">
+                        <tr>
+                           <td> Informations :</td> 
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</HTML>
